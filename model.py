@@ -1,10 +1,17 @@
-import sqlite3, bcrypt, db
-# Check if password correct
+import sqlite3, bcrypt, db, os
 
 conn = sqlite3.connect('music.db')
 cur = conn.cursor()
 
 user, release, song, playlist, phs = db.setup_db(conn)
+
+def seconds_to_str(seconds):
+    """
+    Prevede sekunde v h:m:s
+    """
+    min, sec = divmod(seconds, 60)
+    hour, min = divmod(min, 60)
+    return '%d:%02d:%02d' % (hour, min, sec) if hour > 0 else '%02d:%02d' % (min, sec)
 
 class AuthError(Exception):
     # Napaka pri autentikaciji
@@ -15,7 +22,6 @@ class User:
     Razred za uporabnika
     '''
 
-    # Konstruktor
     def __init__(self, id, name=None, date=None):
         if id and not name and not date:
             q = "SELECT name, date_created FROM User WHERE id = ?"
@@ -28,7 +34,6 @@ class User:
         self.name = name
         self.date = date
 
-    # Izpis uporabnika
     def __str__(self):
         return self.ime
     
@@ -46,6 +51,12 @@ class User:
             raise AuthError("Incorrect password")
         
     @staticmethod
+    # Vrne niz hashed gesla
+    def hashpw(passw):
+        return bcrypt.hashpw(passw.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+    @staticmethod
+    # Poišče uporabnike z podnizom v imenu 
     def search(query):
         q = "SELECT id, name, date_created FROM User WHERE name LIKE ?"
         for id, name, date in conn.execute(q, [f"%{query}%"]):
@@ -56,14 +67,17 @@ class Song:
     Razred za pesem
     '''
 
-    def __init__(self, id, title, release, f_location):
+    def __init__(self, id, release, order_num, title, length):
         self.id = id
-        self.title = title
+        self.order = order_num
         self.release = release
-        self.location = f_location
+        self.title = title
+        self.length = length # V sekundah
+        self.location = os.path.join(".", "music",str(release),f"{order_num}.mp3")
 
     def __str__(self):
         return self.title
+
 
 class Release:
     '''
@@ -77,19 +91,33 @@ class Release:
         self.date = date
         self.id = id
         self.songs = []
+        self._length = None
 
     def __str__(self):
         return self.title
     
+    # Napolni seznam pesmi v izdaji z objekti
     def populate(self):
-        q = "SELECT id, title, file_location FROM Song WHERE release = ? ORDER BY order_num ASC"
+        q = "SELECT id, order_num, title, length FROM Song WHERE release = ? ORDER BY order_num ASC"
         if not self.songs:
-            for id, title, f_location in conn.execute(q, [self.id]):
-                self.songs.append(Song(id, title, self.id, f_location))
+            for id, order_num, title, length in conn.execute(q, [self.id]):
+                self.songs.append(Song(id, self.id, order_num, title, length))
+
+    @property
+    def length(self):
+        if not self.songs:
+            self.populate()
+        if self._length is None:
+            length = 0
+            for song in self.songs:
+                length += song.length
+            self._length = length
+        return self._length
 
     @staticmethod
+    # Poišče izdaje z podnizom
     def search(query):
-        q = "SELECT id, author, title, type, date_release FROM Release WHERE title LIKE ?"
+        q = "SELECT id, author, title, type, date_released FROM Release WHERE title LIKE ?"
         for id, author, title, type, date in conn.execute(q, [f"%{query}%"]):
             yield Release(id, author, title, type, date)
 
@@ -104,12 +132,25 @@ class Playlist:
         self.name = name
         self.id = id
         self.songs = []
+        self._length = None
 
     def __str__(self):
         return self.name
-    
-    def populate(self):
-        q = "SELECT id, title, release, file_location FROM Song s JOIN RIGHT Playlist_Has_Song ps ON s.id = ps.song_id WHERE playlist_id = ? ORDER BY order_num ASC"
+
+    @property
+    def length(self):
         if not self.songs:
-            for id, title, release, f_location in conn.execute(q, [self.id]):
-                self.songs.append(Song(id, title, release, f_location))
+            self.populate()
+        if self._length is None:
+            length = 0
+            for song in self.songs:
+                length += song.length
+            self._length = length
+        return self._length
+
+    # Napolni seznam pesmi z objekti
+    def populate(self):
+        q = "SELECT id, release, order_num, title, length FROM Song s JOIN RIGHT Playlist_Has_Song ps ON s.id = ps.song_id WHERE playlist_id = ? ORDER BY order_num ASC"
+        if not self.songs:
+            for id, release, order_num, title, length in conn.execute(q, [self.id]):
+                self.songs.append(Song(id, release, order_num, title, length))

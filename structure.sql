@@ -16,13 +16,13 @@ CREATE TABLE Release(
 );
 
 CREATE TABLE Song(
-	id INTEGER PRIMARY KEY,
-	release INTEGER NOT NULL,
-	order_num INTEGER NOT NULL,
-	title TEXT NOT NULL,
-	file_location TEXT NOT NULL,
-	FOREIGN KEY (release)
-		REFERENCES Release (id)
+    id INTEGER PRIMARY KEY,
+    release INTEGER NOT NULL,
+    order_num INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    length INTEGER NOT NULL,
+    FOREIGN KEY (release)
+    	REFERENCES Release (id)
 );
 
 CREATE TABLE Playlist(

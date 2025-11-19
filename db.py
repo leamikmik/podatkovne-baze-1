@@ -1,10 +1,17 @@
-import csv, bcrypt
+import csv
 
 class Table:
-    name = None
-    location = None
+    """
+    Osnova za razrede tabel
+    """
+    name = None # Ime v bazi
+    location = None # Lokacija začetnih podatkov
+    columns = {} # Dovoljena imena stolpcov
 
     def setup(self, q):
+        """
+        Ponastavi tabelo
+        """
         self.drop()
         self.conn.execute(q)
         self.import_data()
@@ -13,6 +20,9 @@ class Table:
         self.conn = conn
 
     def import_data(self):
+        """
+        Prebere in vnese začetne podatke
+        """
         with open(self.location) as f:
             data = csv.reader(f)
             columns = next(data)
@@ -20,17 +30,27 @@ class Table:
                 self.insert(**{k: None if v == "" else v for k, v in zip(columns, row)})
 
     def drop(self):
+        """
+        Izbriše tabelo
+        """
         self.conn.execute(f"DROP TABLE IF EXISTS {self.name}")
 
     def insert(self, **values):
-        q = f"INSERT INTO {self.name} ({"?, "*len(values)[:-2]}) VALUES ({"?, "*len(values)[:-2]})"
-        cur = self.conn.execute(q, list(values.keys())+list(values.values()))
+        """
+        Vnese podane podatke v tabelo
+        """
+        if not set(values.keys()).issubset(self.columns):
+            raise ValueError("Incorrect columns")
+        
+        q = f"INSERT INTO {self.name} ({",".join(values.keys())}) VALUES ({("?, "*len(values))[:-2]});"
+        cur = self.conn.execute(q, list(values.values()))
         return cur.lastrowid
     
 class User(Table):
 
     name = "User"
     location = "data/user.csv"
+    columns = {"id", "name", "password", "date_created"}
 
     def setup(self):
         q = """
@@ -41,22 +61,12 @@ class User(Table):
 	        date_created INTEGER NOT NULL DEFAULT (unixepoch('now'))
         );"""
         super().setup(q)
-
-    def import_data(self):
-        with open(self.location) as f:
-            data = csv.reader(f)
-            columns = next(data)
-            for row in data:
-                super().insert(**{k: None if v == "" else v for k, v in zip(columns, row)})
-
-    def insert(self, **values):
-        values["password"] = bcrypt.hashpw(values["password"].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        return super().insert(**values)
     
 class Release(Table):
 
     name = "Release"
     location = "data/release.csv"
+    columns = {"id", "author", "title", "type", "date_released"}
 
     def setup(self):
         q = """
@@ -65,27 +75,33 @@ class Release(Table):
 	        author INTEGER NOT NULL,
 	        title TEXT NOT NULL,
 	        type TEXT NOT NULL CHECK ( type IN ("single", "ep", "album") ),
-	        date_release INTEGER NOT NULL DEFAULT (unixepoch('now')),
+	        date_released INTEGER NOT NULL DEFAULT (unixepoch('now')),
 	        FOREIGN KEY (author)
 	        	REFERENCES User (id)
         );"""
         super().setup(q)
 
+    def insert(self, **values):
+        if values["type"] not in {"single", "ep", "album"}:
+            raise ValueError("Incorrect release type")
+        return super().insert(**values)
+
 class Song(Table):
     
     name = "Song"
     location = "data/song.csv"
+    columns = {"id", "release", "order_num", "title", "length"}
 
     def setup(self):
         q = """
-        CREATE TABLE Release(
+        CREATE TABLE Song(
 	        id INTEGER PRIMARY KEY,
-	        author INTEGER NOT NULL,
+	        release INTEGER NOT NULL,
+	        order_num INTEGER NOT NULL,
 	        title TEXT NOT NULL,
-	        type TEXT NOT NULL CHECK ( type IN ("single", "ep", "album") ),
-	        date_release INTEGER NOT NULL DEFAULT (unixepoch('now')),
-	        FOREIGN KEY (author)
-	        	REFERENCES User (id)
+            length INTEGER NOT NULL,
+	        FOREIGN KEY (release)
+	        	REFERENCES Release (id)
         );"""
         super().setup(q)
 
@@ -93,6 +109,7 @@ class Playlist(Table):
 
     name = "Playlist"
     location = "data/playlist.csv"
+    columns = {"id", "owner", "name", "date_created"}
 
     def setup(self):
         q = """
@@ -106,10 +123,14 @@ class Playlist(Table):
         );"""
         super().setup(q)
 
+    def import_data(self):
+        pass
+
 class Playlist_has_Song(Table):
 
     name = "Playlist_has_Song"
     location = "data/phs.csv"
+    columns = {"playlist_id", "song_id", "order"}
 
     def setup(self):
         q = """
@@ -125,6 +146,9 @@ class Playlist_has_Song(Table):
         );"""
         super().setup(q)
 
+    def import_data(self):
+        pass
+
 def setup_db(conn):
     tables = []
     tables.append(User(conn))
@@ -136,4 +160,5 @@ def setup_db(conn):
     for t in tables:
         t.setup()
 
+    conn.commit()
     return tables
