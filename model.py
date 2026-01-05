@@ -40,7 +40,7 @@ class User:
     @staticmethod
     # Vrne vpisanega uporabnika, če pravilno vnešeni podatki
     def login(name, inp_passw):
-        q = "SELECT id, password, date_created FROM User WHERE ime = ?;"
+        q = "SELECT id, password, date_created FROM User WHERE name = ?;"
         res = conn.execute(q, [name]).fetchone()
         if res is None:
             raise AuthError("User not found")
