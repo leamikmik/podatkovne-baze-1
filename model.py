@@ -78,7 +78,7 @@ class Song:
         self.location = os.path.join(".", "music",str(release),f"{order_num}.mp3")
 
         q = "SELECT name FROM Release r JOIN User u ON r.author = u.id WHERE r.id = ?"
-        self.author = conn.execute(q, [release]).fetchone()
+        self.author = conn.execute(q, [release]).fetchone()[0]
 
     def __str__(self):
         return self.title
