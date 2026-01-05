@@ -7,10 +7,23 @@
     <link rel="stylesheet" href="styling.css">
 </head>
 
-% form = read_form()
+% form = read_form('login')
 
 <body>
     <form action="/login/" method="POST">
         <div class="field">
             <label class="label">Uporabniško ime</label>
-                <input class="input" type="text" name="username" placeholder="Name" value="{{form.get('username', ''')}}" />
+                <input class='input' type='text' name='username' placeholder='Name' value="{{form.get('username', '')}}" />
+        </div>
+        <div class="field">
+            <label class="label">Geslo</label>
+                <input class="input" type="text" name="password" paceholder="pw" />
+        </div>
+        <div class="field">
+        <p class="control">
+            <button class="button is-success">
+                Prijavi se
+            </button>
+        </p>
+        </div>
+    </form>       

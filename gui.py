@@ -56,14 +56,6 @@ def logout_user():
     del_cookie('user')
     bottle.redirect('/')
 
-def status()
-
-@status
-def not_logged_in(user):
-    if user:
-        bottle.redirect('/')
-    return ()
-
 @bottle.get('/')
 @bottle.view('index.html')
 def index():
@@ -71,12 +63,10 @@ def index():
 
 @bottle.get('/prijava/')
 @bottle.view('login.html')
-@not_logged_in
 def login():
     pass
 
 @bottle.post('/prijava/')
-@not_logged_in
 def login_post():
     username=bottle.request.forms.username
     password=bottle.request.forms.password
@@ -85,18 +75,20 @@ def login_post():
 
 @bottle.get('/registracija/')
 @bottle.view('registracija.html')
-@not_logged_in
 def register():
     pass
 
 @bottle.post('/registracija/')
-@not_logged_in
 def register_post():
     username=bottle.request.forms.username
     password1=bottle.request.forms.password1
     password2=bottle.request.forms.password2
     set_form('register', {'username': username})
-    if password1 not password2:
+    if password1 is not password2:
         set_message("Gesli se ne ujemata :/")
         bottle.redirect('/registracija/')
     user=user.insert({"name":username, "password": User.hashpw(password1)})
+
+
+if __name__ == '__main__':
+    bottle.run(debug=True, reloader=True)
