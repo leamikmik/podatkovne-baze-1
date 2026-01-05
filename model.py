@@ -35,7 +35,7 @@ class User:
         self.date = date
 
     def __str__(self):
-        return self.ime
+        return self.name
     
     @staticmethod
     # Vrne vpisanega uporabnika, če pravilno vnešeni podatki
