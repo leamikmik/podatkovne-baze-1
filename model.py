@@ -40,7 +40,7 @@ class User:
     @staticmethod
     # Vrne vpisanega uporabnika, če pravilno vnešeni podatki
     def login(name, inp_passw):
-        q = "SELECT id, password, date_created FROM User WHERE ime = ?;"
+        q = "SELECT id, password, date_created FROM User WHERE name = ?;"
         res = conn.execute(q, [name]).fetchone()
         if res is None:
             raise AuthError("User not found")
@@ -59,8 +59,10 @@ class User:
     # Poišče uporabnike z podnizom v imenu 
     def search(query):
         q = "SELECT id, name, date_created FROM User WHERE name LIKE ?"
+        res = []
         for id, name, date in conn.execute(q, [f"%{query}%"]):
-            yield User(id, name, date)
+            res.append(User(id, name, date))
+        return res
 
 class Song:
     '''
@@ -75,9 +77,20 @@ class Song:
         self.length = length # V sekundah
         self.location = os.path.join(".", "music",str(release),f"{order_num}.mp3")
 
+        q = "SELECT name FROM Release r JOIN User u ON r.author = u.id WHERE r.id = ?"
+        self.author = conn.execute(q, [release]).fetchone()
+
     def __str__(self):
         return self.title
-
+    
+    @staticmethod
+    # Poišče pesmi z podnizom
+    def search(query):
+        q = "SELECT id, order_num, release, title, length FROM Song WHERE title LIKE ?"
+        res = []
+        for id, order, release, title, length in conn.execute(q, [f"%{query}%"]):
+            res.append(Song(id, release, order, title, length))
+        return res
 
 class Release:
     '''
@@ -85,7 +98,7 @@ class Release:
     '''
 
     def __init__(self, id, author, title, type, date):
-        self.author = author
+        self.author = User(author)
         self.title = title
         self.type = type
         self.date = date
@@ -116,10 +129,12 @@ class Release:
 
     @staticmethod
     # Poišče izdaje z podnizom
-    def search(query):
-        q = "SELECT id, author, title, type, date_released FROM Release WHERE title LIKE ?"
-        for id, author, title, type, date in conn.execute(q, [f"%{query}%"]):
-            yield Release(id, author, title, type, date)
+    def search(query, qtype):
+        q = "SELECT id, author, title, type, date_released FROM Release WHERE title LIKE ? AND type = ?"
+        res = []
+        for id, author, title, type, date in conn.execute(q, [f"%{query}%", qtype]):
+            res.append(Release(id, author, title, type, date))
+        return res
 
 class Playlist:
     '''
