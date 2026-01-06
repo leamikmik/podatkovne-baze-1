@@ -1,4 +1,4 @@
-import os, getpass
+import os, getpass, time
 from enum import Enum
 import model
 
@@ -16,6 +16,10 @@ def refresh(f):
             print()
     return wrap
 
+def switchToMenu(menu):
+    global currentMenu
+    currentMenu = menu
+
 class Menu(Enum):
     """
     Razred za izbiro
@@ -30,13 +34,6 @@ class Menu(Enum):
 
 
 
-def backToHome():
-    global currentMenu
-    currentMenu = HomeMenu
-
-def toSearch():
-    global currentMenu
-    currentMenu = SearchMenu
 
 def login():
     global loggedUser
@@ -57,7 +54,7 @@ def close():
 
 class HomeMenu(Menu):
 
-    SEARCH = ("Search", toSearch)
+    SEARCH = ("Search", lambda: switchToMenu(SearchMenu))
     #ADD = ("Add an entry (must be logged in)", function)
     LOGIN = ("Login", login)
     LOGOUT = ("Logout", logout)
@@ -76,35 +73,75 @@ def searchQuery():
     SearchMenu.QUERY.append = inp
 
 def searchGo():
-    global currentMenu
-    currentMenu = None
+    global currentMenu, page, results
 
     type = None
     match SearchMenu.TYPE.append:
         case "Songs":
-            results = model.Song.search(SearchMenu.QUERY.append)
+            type = "songs"
+            res = model.Song.search(SearchMenu.QUERY.append)
         case _:
             type = SearchMenu.TYPE.append.lower()
-            results = model.Release.search(SearchMenu.QUERY.append, type)
-    resLen = len(results)
+            res = model.Release.search(SearchMenu.QUERY.append, type)
+
+    results = []
     page = 1
-    print("""(1) Back
-(2) Next page
-(3) Previous page
-""")
-    for i, val in enumerate(results, 1):
-        if i > page*10:
-            break
-        print(f"({i+3}) {val.title} - {val.author}")
+    for val in res:
+        results.append(SearchResultItem(f"{val.title} - {val.author}", lambda x=val.id: showSong(x)))
+    currentMenu = SearchResultsMenu
+    SearchResultsMenu.PREV.append = f"\n---------- {page}/{(len(results)+10)//10} ----------"
 
 class SearchMenu(Menu):
-    BACK = ("Back", backToHome)
+    BACK = ("Back", lambda: switchToMenu(HomeMenu))
     TYPE = ("What to search for: ", typeSwap)
     QUERY = ("Query: ", searchQuery)
     SEARCH = ("Go", searchGo)
-
 SearchMenu.TYPE.append = searchTypes[0]
 
+
+
+def changePage(n):
+    global page
+    page += n
+    if page > (len(results)+10)//10 or page < 1:
+        page -= n
+        return
+    SearchResultsMenu.PREV.append = f"\n---------- {page}/{(len(results)+10)//10} ----------"
+
+def showSong(id):
+    global currentMenu
+    song = model.Song(id)
+    release = model.Release(song.release)
+    print(f"{song}")
+    print(f"- Author: {song.author}")
+    print(f"- Release: {release}")
+    print(f"- Released on: {time.ctime(release.date)}")
+    print(f"- Length: {model.seconds_to_str(song.length)}")
+    print(f"- File location: {song.location}")
+    currentMenu = SongMenu
+
+def showRelease(id, showSongs=False):
+    global currentMenu
+    release = model.Release(id)
+    pass
+
+page, results = 1, []
+class SearchResultsMenu(Menu):
+    BACK = ("Back", lambda: switchToMenu(SearchMenu))
+    NEXT = ("Next page", lambda: changePage(1))
+    PREV = ("Previous page", lambda: changePage(-1))
+
+class SearchResultItem:
+    def __init__(self, name, f):
+        self.name = name
+        self.fun = refresh(f)
+
+    def __str__(self):
+        return self.name
+
+class SongMenu(Menu):
+    BACK = ("Back", lambda: switchToMenu(SearchResultsMenu))
+    RELEASE = ("See release", lambda: switchToMenu(SearchResultsMenu))
 
 
 
@@ -120,9 +157,10 @@ def selectMenu(menu):
             menu.pop(-3)
         else:
             menu.pop(-2)
+    elif menu == SearchResultsMenu:
+        menu = list(menu) + results[10*(page-1):min(10*page, len(results))]
     else:
         menu = list(menu)
-
     print("\nSelect an option:")
     for i, val in enumerate(menu, startNum):
         print(f"({i}) {val}")
