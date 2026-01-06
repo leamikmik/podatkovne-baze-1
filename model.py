@@ -23,7 +23,7 @@ class User:
     '''
 
     def __init__(self, id, name=None, date=None):
-        if id and not name and not date:
+        if name is None or date is None:
             q = "SELECT name, date_created FROM User WHERE id = ?"
             res = conn.execute(q, [id]).fetchone()
             if res is None:
@@ -40,13 +40,13 @@ class User:
     @staticmethod
     # Vrne vpisanega uporabnika, če pravilno vnešeni podatki
     def login(name, inp_passw):
-        q = "SELECT id, password, date_created FROM User WHERE name = ?;"
+        q = "SELECT id, password FROM User WHERE name = ?;"
         res = conn.execute(q, [name]).fetchone()
         if res is None:
             raise AuthError("User not found")
-        id, password, date = res
+        id, password = res
         if bcrypt.checkpw(inp_passw.encode('utf-8'), password.encode('utf-8')):
-            return User(id, name, date)
+            return User(id)
         else:
             raise AuthError("Incorrect password")
         
@@ -69,20 +69,26 @@ class Song:
     Razred za pesem
     '''
 
-    def __init__(self, id, release, order_num, title, length):
+    def __init__(self, id, release=None, order_num=None, title=None, length=None):
         self.id = id
+        if release is None or order_num is None or title is None or length is None:
+            q = "SELECT order_num, release, title, length FROM Song WHERE id = ?"
+            res = conn.execute(q, [id]).fetchone()
+            if res is None:
+                raise ValueError("Song not found")
+            order_num, release, title, length = res    
         self.order = order_num
         self.release = release
         self.title = title
         self.length = length # V sekundah
         self.location = os.path.join(".", "music",str(release),f"{order_num}.mp3")
 
-        q = "SELECT name FROM Release r JOIN User u ON r.author = u.id WHERE r.id = ?"
-        self.author = conn.execute(q, [release]).fetchone()[0]
+        q = "SELECT author FROM Release WHERE id = ?"
+        self.author = User(conn.execute(q, [release]).fetchone()[0])
 
     def __str__(self):
         return self.title
-    
+
     @staticmethod
     # Poišče pesmi z podnizom
     def search(query):
@@ -97,7 +103,13 @@ class Release:
     Razred za izdajo
     '''
 
-    def __init__(self, id, author, title, type, date):
+    def __init__(self, id, author=None, title=None, type=None, date=None):
+        if author is None or title is None or type is None or date is None:
+            q = "SELECT author, title, type, date_released FROM Release WHERE id = ?"
+            res = conn.execute(q, [id]).fetchone()
+            if res is None:
+                raise ValueError("Release not found")
+            author, title, type, date = res
         self.author = User(author)
         self.title = title
         self.type = type
