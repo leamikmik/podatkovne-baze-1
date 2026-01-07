@@ -117,6 +117,7 @@ class Release:
         self.id = id
         self.songs = []
         self._length = None
+        self.location = os.path.join(".", "music",str(id))
 
     def __str__(self):
         return self.title
