@@ -89,6 +89,7 @@ def register_post():
         bottle.redirect('/registracija/')
     user=user.insert({"name":username, "password": User.hashpw(password1)})
 
+bottle.BaseTemplate.defaults["read_form"] = read_form
 
 if __name__ == '__main__':
     bottle.run(debug=True, reloader=True)
