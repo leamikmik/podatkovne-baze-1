@@ -72,8 +72,23 @@ def searchQuery():
     inp = input("Query: ")
     SearchMenu.QUERY.append = inp
 
+def resToMenu(res):
+    ret = []
+    for val in res:
+        match val:
+            case model.Song():
+                text = f"{val} by {val.author} - {model.seconds_to_str(val.length)}"
+                fun = lambda x=val: showSong(x)
+            case model.Release():
+                text = f"{val} by {val.author}"
+                fun = lambda x=val: showRelease(x)
+            case _:
+                raise ValueError(f'Incorrect object type {type(val)}')
+        ret.append(SearchResultItem(text, fun))
+    return ret
+
 def searchGo():
-    global currentMenu, page, results
+    global currentMenu, results
 
     type = None
     match SearchMenu.TYPE.append:
@@ -84,12 +99,9 @@ def searchGo():
             type = SearchMenu.TYPE.append.lower()
             res = model.Release.search(SearchMenu.QUERY.append, type)
 
-    results = []
-    page = 1
-    for val in res:
-        results.append(SearchResultItem(f"{val.title} - {val.author}", lambda x=val.id: showSong(x)))
+    results = resToMenu(res)
+    changePage(0)
     currentMenu = SearchResultsMenu
-    SearchResultsMenu.PREV.append = f"\n---------- {page}/{(len(results)+10)//10} ----------"
 
 class SearchMenu(Menu):
     BACK = ("Back", lambda: switchToMenu(HomeMenu))
@@ -103,27 +115,50 @@ SearchMenu.TYPE.append = searchTypes[0]
 def changePage(n):
     global page
     page += n
-    if page > (len(results)+10)//10 or page < 1:
+    if n == 0:
+        page = 1
+    elif page > (len(results)+10)//10 or page < 1:
         page -= n
         return
     SearchResultsMenu.PREV.append = f"\n---------- {page}/{(len(results)+10)//10} ----------"
 
-def showSong(id):
+def showSong(song):
     global currentMenu
-    song = model.Song(id)
+    if not isinstance(song, model.Song):
+        song = model.Song(song)
     release = model.Release(song.release)
-    print(f"{song}")
-    print(f"- Author: {song.author}")
-    print(f"- Release: {release}")
-    print(f"- Released on: {time.ctime(release.date)}")
-    print(f"- Length: {model.seconds_to_str(song.length)}")
-    print(f"- File location: {song.location}")
-    currentMenu = SongMenu
+    print(
+f"""{song}
+- Author: {song.author}
+- Release: {release}
+- Released on: {time.ctime(release.date)}
+- Length: {model.seconds_to_str(song.length)}
+- File location: {song.location}"""
+    )
+    SongInfoMenu.RELEASE.fun = refresh(lambda: showRelease(release))
+    currentMenu = SongInfoMenu
 
-def showRelease(id, showSongs=False):
+def showRelease(release):
     global currentMenu
-    release = model.Release(id)
-    pass
+    if not isinstance(release, model.Release):
+        release = model.Release(release)
+    print(
+f"""{release}
+- Author: {release.author}
+- Type: {release.type.capitalize()}
+- Released on: {time.ctime(release.date)}
+- Length: {model.seconds_to_str(release.length)}
+- Number of songs: {len(release.songs)}
+- Release location: {release.location}"""
+    )
+    ReleaseInfoMenu.SONGS.fun = refresh(lambda: showReleaseSongs(release.songs))
+    currentMenu = ReleaseInfoMenu
+
+def showReleaseSongs(songs):
+    global results, currentMenu
+    results = resToMenu(songs)
+    changePage(0)
+    currentMenu = SearchResultsMenu
 
 page, results = 1, []
 class SearchResultsMenu(Menu):
@@ -139,10 +174,13 @@ class SearchResultItem:
     def __str__(self):
         return self.name
 
-class SongMenu(Menu):
+class SongInfoMenu(Menu):
     BACK = ("Back", lambda: switchToMenu(SearchResultsMenu))
-    RELEASE = ("See release", lambda: switchToMenu(SearchResultsMenu))
+    RELEASE = ("See release", None)
 
+class ReleaseInfoMenu(Menu):
+    BACK = ("Back", lambda: switchToMenu(SearchResultsMenu))
+    SONGS = ("Show songs", None)
 
 
 currentMenu = HomeMenu # Trenutno izbran meni
