@@ -37,6 +37,16 @@ class User:
     def __str__(self):
         return self.name
     
+    def getReleases(self, type="all"):
+        if type not in ("single", "ep", "album", "all"):
+            raise ValueError(f"Incorrect type {type}")
+        q = "SELECT id, title, type, date_released FROM Release WHERE author = ?" + ("AND type = ?" if type != "all" else "")
+        res = []
+        
+        for id, title, type, date in conn.execute(q, [self.id, type] if type != "all" else [self.id]):
+            res.append(Release(id, self.id, title, type, date))
+        return res
+
     @staticmethod
     # Vrne vpisanega uporabnika, če pravilno vnešeni podatki
     def login(name, inp_passw):
@@ -128,6 +138,7 @@ class Release:
         if not self.songs:
             for id, order_num, title, length in conn.execute(q, [self.id]):
                 self.songs.append(Song(id, self.id, order_num, title, length))
+        return self.songs
 
     @property
     def length(self):
@@ -155,7 +166,7 @@ class Playlist:
     '''
 
     def __init__(self, id, owner, name, date):
-        self.owner = User(id=owner)
+        self.owner = User(owner)
         self.date = date
         self.name = name
         self.id = id
