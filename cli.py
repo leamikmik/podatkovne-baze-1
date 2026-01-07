@@ -1,4 +1,6 @@
-import os, getpass, time
+import os
+from getpass import getpass
+from time import ctime
 from enum import Enum
 import model
 
@@ -63,7 +65,7 @@ class HomeMenu(Menu):
 
 
 
-searchTypes = ["Songs", "EP", "Album"]
+searchTypes = ["Song", "EP", "Album", "User"]
 def typeSwap():
     searchTypes.append(searchTypes.pop(0))
     SearchMenu.TYPE.append = searchTypes[0]
@@ -81,7 +83,10 @@ def resToMenu(res):
                 fun = lambda x=val: showSong(x)
             case model.Release():
                 text = f"{val} by {val.author}"
-                fun = lambda x=val: showRelease(x)
+                fun = lambda x=val: showRelease(x) 
+            case model.User():
+                text = val.name
+                fun = lambda x=val: showUser(x)
             case _:
                 raise ValueError(f'Incorrect object type {type(val)}')
         ret.append(SearchResultItem(text, fun))
@@ -90,11 +95,11 @@ def resToMenu(res):
 def searchGo():
     global currentMenu, results
 
-    type = None
     match SearchMenu.TYPE.append:
-        case "Songs":
-            type = "songs"
+        case "Song":
             res = model.Song.search(SearchMenu.QUERY.append)
+        case "User":
+            res = model.User.search(SearchMenu.QUERY.append)
         case _:
             type = SearchMenu.TYPE.append.lower()
             res = model.Release.search(SearchMenu.QUERY.append, type)
@@ -117,10 +122,10 @@ def changePage(n):
     page += n
     if n == 0:
         page = 1
-    elif page > (len(results)+10)//10 or page < 1:
+    elif page > (len(results)+9)//10 or page < 1:
         page -= n
         return
-    SearchResultsMenu.PREV.append = f"\n---------- {page}/{(len(results)+10)//10} ----------"
+    SearchResultsMenu.PREV.append = f"\n---------- {page}/{(len(results)+9)//10} ----------"
 
 def showSong(song):
     global currentMenu
@@ -131,7 +136,7 @@ def showSong(song):
 f"""{song}
 - Author: {song.author}
 - Release: {release}
-- Released on: {time.ctime(release.date)}
+- Released on: {ctime(release.date)}
 - Length: {model.seconds_to_str(song.length)}
 - File location: {song.location}"""
     )
@@ -146,17 +151,38 @@ def showRelease(release):
 f"""{release}
 - Author: {release.author}
 - Type: {release.type.capitalize()}
-- Released on: {time.ctime(release.date)}
+- Released on: {ctime(release.date)}
 - Length: {model.seconds_to_str(release.length)}
 - Number of songs: {len(release.songs)}
 - Release location: {release.location}"""
     )
-    ReleaseInfoMenu.SONGS.fun = refresh(lambda: showReleaseSongs(release.songs))
+    ReleaseInfoMenu.SONGS.fun = refresh(lambda: showEntries(release.songs))
     currentMenu = ReleaseInfoMenu
 
-def showReleaseSongs(songs):
+def showUser(user):
+    global currentMenu
+    if not isinstance(user, model.User):
+        user = model.User(user)
+    releases = user.getReleases()
+    songs = []
+    for rel in releases:
+        songs += rel.populate()
+    
+    print(
+f"""{user}
+- Joined on: {ctime(user.date)}
+- Number of releases: {len(releases)}
+- Number of songs: {len(songs)}"""
+    )
+    UserInfoMenu.ALBUM.fun = refresh(lambda: showEntries(user.getReleases("album")))
+    UserInfoMenu.EP.fun = refresh(lambda: showEntries(user.getReleases("ep")))
+    UserInfoMenu.SINGLE.fun = refresh(lambda: showEntries(user.getReleases("single")))
+    UserInfoMenu.SONG.fun = refresh(lambda: showEntries(songs))
+    currentMenu = UserInfoMenu
+
+def showEntries(res):
     global results, currentMenu
-    results = resToMenu(songs)
+    results = resToMenu(res)
     changePage(0)
     currentMenu = SearchResultsMenu
 
@@ -182,6 +208,13 @@ class ReleaseInfoMenu(Menu):
     BACK = ("Back", lambda: switchToMenu(SearchResultsMenu))
     SONGS = ("Show songs", None)
 
+class UserInfoMenu(Menu):
+    BACK = ("Back", lambda: switchToMenu(SearchResultsMenu))
+    ALBUM = ("See albums", None)
+    EP = ("See EPs", None)
+    SINGLE = ("See singles", None)
+    SONG = ("See all songs", None)
+
 
 currentMenu = HomeMenu # Trenutno izbran meni
 loggedUser = None
@@ -201,7 +234,7 @@ def selectMenu(menu):
         menu = list(menu)
     print("\nSelect an option:")
     for i, val in enumerate(menu, startNum):
-        print(f"({i}) {val}")
+        print(f"[{i}] {val}")
 
     while True:
         try: 
