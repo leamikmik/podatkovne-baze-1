@@ -38,6 +38,8 @@ class Table:
     def insert(self, **values):
         """
         Vnese podane podatke v tabelo
+        
+        Vnos oblike insert(column1 = val1, calumn2 = val2, ...)
         """
         if not set(values.keys()).issubset(self.columns):
             raise ValueError("Incorrect columns")
