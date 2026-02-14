@@ -1,33 +1,37 @@
+% form = read_form('register')
+
 <!DOCTYPE html>
 <html lang="en" class=" izaglqfd idc0_350"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prijava - Glasbena Knjižnica</title>
+    <title>Registracija - Glasbena Knjižnica</title>
     <link rel="stylesheet" href="styling.css">
 </head>
 
-% form = read_form('login')
-
 <body>
-    <form action="/prijava/" method="POST">
+    <form action="/registracija/" method="POST">
         <div class="field">
             <label class="label">Uporabniško ime</label>
                 <input class='input' type='text' name='username' placeholder='Name' value="{{form.get('username', '')}}" />
         </div>
         <div class="field">
             <label class="label">Geslo</label>
-                <input class="input" type="password" name="password" paceholder="pw" />
+                <input class="input" type="password" name="password1" paceholder="pw" />
+        </div>
+        <div class="field">
+            <label class="label">Geslo ponovno</label>
+                <input class="input" type="password" name="password2" paceholder="pw2" />
         </div>
         <div class="field">
         <p class="control">
             <button class="button is-success">
-                Prijavi se
+                Registriraj se
             </button>
         </p>
         </div>
-        % if read_message() == "user not found":
         <br>
-        <a>Napačno uporabniško ime ali geslo</a>
+        % if read_message() == 'passwords dont match':
+        <a>Gesli se ne ujemata</a>
         % end
-    </form>       
+    </form>     

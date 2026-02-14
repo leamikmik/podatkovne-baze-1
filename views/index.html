@@ -1,35 +1,41 @@
+% if not defined('user'):
+%    user = logged_in_user()
+% end
+
 <!DOCTYPE html>
 <html lang="en" class=" izaglqfd idc0_350"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Glasbena Knjižnica</title>
-    <link rel="stylesheet" href="styling.css">
+    <link rel="stylesheet" href="/static/styling.css">
 </head>
 <body>
-    <div class="grid-container">
-        <a href="player.html">
-            <div class="grid-item">
-                <br>
-                <img src="pics/player.jpg" height=100vh>
-                <h2 style="text-align: center;">
-                    Predvajalnik
-                </h2>
-            </div>
-        </a>
-        <a href="upload.html">
-            <div class="grid-item">
-                <br>
-                <img src="pics/upload.jpg" height=100vh>
-                <h2 style="text-align: center;">
-                    Naloži glasbo
-                </h2>
-            </div>
-        </a>
+    <div position: fixed, align: right>
+        <a>prijavljeni uporabnik:</a>
+        % if user:
+        <a>{{user}}</a>
+        % else:
+        <a>niste prijavljeni</a>
+        % end
+    </div>
         <a href="/prijava/">
-            <div class="grid-item">
+            <p>
                 <br>
-            </div>
+                prijava
+            </p>
+        </a>
+        <a href="/registracija/">
+            <p>
+                <br>
+                registracija
+            </p>
+        </a>
+        <a href="/odjava/">
+            <p>
+                <br>
+                odjava
+            </p>
         </a>
     </div>
 </body>

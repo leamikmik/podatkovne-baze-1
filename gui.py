@@ -17,18 +17,13 @@ def get_cookie(cookie, delete=True):
         del_cookie(cookie)
     return message
 
-def set_message(message, msg_type="danger"):
+def set_message(message):
     set_cookie("msg", message)
-    set_message("type", msg_type)
 
 def read_message():
-    message=bottle.request.get_cookie('msg', secret=SECRET)
-    msg_type=bottle.request.get_cookie("type", secret=SECRET)
-    if not msg_type:
-        msg_type="danger"
-    del_cookie("msg")
-    del_cookie("msg_type")
-    return (message, msg_type)
+    message=get_cookie('msg')
+    del_cookie('msg')
+    return message
 
 def set_form(cookie, form):
     set_cookie(cookie, json.dumps(form))
@@ -39,15 +34,19 @@ def read_form(cookie, default={}, delete=True):
     except (TypeError, json.JSONDecodeError):
         return default
 
-def logged_in_user(user, cookie=None):
-    user=bottle.request.get_cookie('user', secret=SECRET)
-    return userid
+def logged_in_user():
+    uid=bottle.request.get_cookie('user', secret=SECRET)
+    try:
+        user = User(uid)
+    except:
+        return False
+    return str(user)
 
 def login_user(user, cookie="None"):
     if not user:
-        set_message("Prijava ni bila uspešna :(")
+        set_message("user not found")
         bottle.redirect("/prijava/")
-    bottle.response.set_cookie('user', str(user.id), secret=SECRET, path="/")
+    bottle.response.set_cookie('user', user.id, secret=SECRET, path="/")
     if cookie:
         del_cookie(cookie)
     bottle.redirect("/")
@@ -55,6 +54,10 @@ def login_user(user, cookie="None"):
 def logout_user():
     del_cookie('user')
     bottle.redirect('/')
+
+@bottle.get('/static/<file:path>')
+def static(file):
+    return bottle.static_file(file, root='static')
 
 @bottle.get('/')
 @bottle.view('index.html')
@@ -71,10 +74,15 @@ def login_post():
     username=bottle.request.forms.username
     password=bottle.request.forms.password
     set_form('login', {'username':username})
-    login_user(User.login(username, password), cookie='login')
+    try:
+        user = User.login(username, password)
+    except:
+        set_message("user not found")
+        bottle.redirect("/prijava/")
+    login_user(user, cookie='login')
 
 @bottle.get('/registracija/')
-@bottle.view('registracija.html')
+@bottle.view('registration.html')
 def register():
     pass
 
@@ -85,11 +93,18 @@ def register_post():
     password2=bottle.request.forms.password2
     set_form('register', {'username': username})
     if password1 is not password2:
-        set_message("Gesli se ne ujemata :/")
+        set_message('passwords dont match')
         bottle.redirect('/registracija/')
-    user=user.insert({"name":username, "password": User.hashpw(password1)})
+    user=User.register(username, password1)
+    login_user(User.login(username, password1), cookie='login')
 
+@bottle.get('/odjava/')
+def odjava():
+    logout_user()
+
+bottle.BaseTemplate.defaults["read_message"] = read_message
 bottle.BaseTemplate.defaults["read_form"] = read_form
+bottle.BaseTemplate.defaults["logged_in_user"] = logged_in_user
 
 if __name__ == '__main__':
     bottle.run(debug=True, reloader=True)
