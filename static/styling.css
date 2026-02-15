@@ -58,34 +58,68 @@ p{
 .top-row{
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    width: 95%;
+    width: 90%;
     margin: 0 auto;
     padding: 2%;
     column-gap: 5%;
-    align-items: justify;
+    align-items: center;
     }
 .top-row-item{
     background-color: #212529c7;
     align-content: center;
-    max-width: 20%;
     border-radius: 20px;
+    width: fit-content;
+    max-width: 100%;
     }
 .top-row-search{
     background-color: #212529c7;
     align-content: center;
-    max-width: 50%;
     border-radius: 20px;
     }
 
 
-@media (max-width: 768px) {
-    p{
-        text-align: center;
+/* dropdown za uporabnika */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    align-content: center;
+    border-radius: 20px;
+    width: fit-content;
+    max-width: 100%;
     }
-    .grid-container{
-        width: 95%;
-        
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #212529c7;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 20px;
+}
+.dropdown-content a {
+    color: rgb(255, 244, 219);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+.dropbtn {
+    background-color: #21252900;
+    align-content: center;
+    width: fit-content;
+    max-width: 100%;
+    color: rgb(255, 244, 219);
+    border: none;
+    font-weight: normal;
+    font-size: 16px;
+    border-radius: 20px;
+    padding: 12px;
+}
+.dropdown-content a:hover {
+    background-color: #212529eb;
+    border-radius: 20px;
     }
+.dropdown:hover .dropdown-content {
+    display: block;
     }
-
+.dropdown:hover .dropbtn {background-color: #212529eb;}
 

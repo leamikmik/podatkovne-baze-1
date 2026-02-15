@@ -13,7 +13,11 @@
 <body>
     <div class="top-row">
         <div class="top-row-item">
-            <p>Upload</p>
+            % if user:
+            <p style="text-align: center">Naložite svojo glasbo</p>
+            % else:
+            <p style="text-align: center">Za naganje glasbe je potrebna prijava</p>
+            % end
         </div>
         <div class="top-row-search">
             <form action="/search/" method="POST">
@@ -26,6 +30,24 @@
                     </select>
                 </div>
             </form>
+        </div>
+        <div class="top-row-item">
+            % if user:
+            <div class="dropdown">
+                <button class="dropbtn">{{user}}</button>
+                <div class="dropdown-content">
+                    <a href="/odjava/">Odjava</a>
+                </div>
+            </div>
+            % else:
+            <div class="dropdown">
+                <button class="dropbtn">Niste prijavljeni</button>
+                <div class="dropdown-content">
+                    <a href="/prijava/">Prijava</a>
+                    <a href="/registracija/">Registracija</a>
+                </div>
+            </div>
+            % end
         </div>
     </div>
     <div class="flex-container" style="padding-bottom: 3%; gap: 0px">
@@ -54,31 +76,5 @@ Nulla ut consectetur velit. Quisque egestas nisl quis sem pretium, eu ultricies 
 Donec eget leo eu turpis faucibus interdum at a nulla. Sed ut diam gravida, dignissim metus a, pulvinar odio. Maecenas laoreet sagittis quam placerat pellentesque. Sed arcu risus, convallis nec rutrum elementum, lobortis vel nulla. In quis felis quis lectus tempor pellentesque. Aliquam vel mi aliquam, porttitor nunc sed, euismod magna. Mauris lorem turpis, pharetra non congue ac, porttitor vel diam. Nullam auctor feugiat interdum. 
             </p>
         </div>
-    <div position: fixed, align: right>
-        <a>prijavljeni uporabnik:</a>
-        % if user:
-        <a>{{user}}</a>
-        % else:
-        <a>niste prijavljeni</a>
-        % end
-    </div>
-        <a href="/prijava/">
-            <p>
-                <br>
-                prijava
-            </p>
-        </a>
-        <a href="/registracija/">
-            <p>
-                <br>
-                registracija
-            </p>
-        </a>
-        <a href="/odjava/">
-            <p>
-                <br>
-                odjava
-            </p>
-        </a>
     </div>
 </body>
