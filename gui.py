@@ -102,6 +102,16 @@ def register_post():
 def odjava():
     logout_user()
 
+@bottle.get('/pesmi/')
+@bottle.view('songsearch.html')
+def song_search_post():
+    query = bottle.request.query.query
+    if query:
+        results = Song.search(query)
+    else:
+        results = None
+    return dict(query=query, results=results)
+
 bottle.BaseTemplate.defaults["read_message"] = read_message
 bottle.BaseTemplate.defaults["read_form"] = read_form
 bottle.BaseTemplate.defaults["logged_in_user"] = logged_in_user

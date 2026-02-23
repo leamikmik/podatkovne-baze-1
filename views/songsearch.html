@@ -1,0 +1,16 @@
+% rebase("base.html")
+
+<form action="/pesmi/" method="GET">
+    <div class="field">
+        <input class="input" type="text" name="query" placeholder="Vpiši ime pesmi" value="{{query}}">
+        <button lcass="button is-success">Išči</button>
+    </div>
+</form>
+
+% if results:
+    % for song in results:
+    <p>
+        ime: {{song.title}}, izdaja: {{song.release}}
+    </p>
+% end
+

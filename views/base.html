@@ -1,0 +1,65 @@
+% if not defined('user'):
+%    user = logged_in_user()
+% end
+% msg = read_message()
+
+<!DOCTYPE html>
+<html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glasbena Knjižnica</title>
+    <link rel="stylesheet" href="/static/styling.css">
+</head>
+
+<body>
+    <ul class="navbar">
+        % if user:
+        <li>
+            <div class="dropdown">
+                <button class="dropbtn">{{user}}</button>
+                <div class="dropdown-content">
+                    <a href="/uporabnik/">O uporabniku</a>
+                    <a href="/odjava/">Odjava</a>
+                </div>
+            </div>
+        </li>
+        <li>
+            <a href="/nalaganje/">Naložite svojo glasbo</a>
+        </li>
+        <li>
+            <a href="/seznami-predvajanj/">Seznami predvajanj</a>
+        </li>
+        % else:
+        <li>
+            <div class="dropdown">
+                <button class="dropbtn">Niste prijavljeni</button>
+                <div class="dropdown-content">
+                    <a href="/prijava/">Prijava</a>
+                    <a href="/registracija/">Registracija</a>
+                </div>
+            </div>
+        </li>
+        % end
+        <li>
+            <div class="dropdown">
+                <button class="dropbtn">Iskanje</button>
+                <div class="dropdown-content">
+                    <a href="/pesmi/">Pesmi</a>
+                    <a href="/izdaje/">Izdaje</a>
+                    <a href="/uporabniki/">Uporabniki</a>
+                </div>
+            </div>
+        </li>
+    </ul>
+    % if msg:
+    <div class="notification">
+        <button class="delete"></button>
+        {{msg}}
+    </div>
+    % end
+    <section class="section">
+        <div class="container">
+            {{!base}}
+        </div>
+    </section>
+</body>
