@@ -90,6 +90,17 @@ class User:
         for id, name, date in conn.execute(q, [f"%{query}%"]):
             res.append(User(id, name, date))
         return res
+    
+#    def new_release(self, title, type, path):
+#        os.chdir(path)
+#        song_files = os.listdir()
+#        for file in song_files:
+#            order_num = 
+#            title = 
+#            length = 
+#            song.insert(release=)
+#        release.insert(author=self.id, title=title, type=type)
+#        return
 
 class Song:
     '''
@@ -183,7 +194,13 @@ class Playlist:
     Razred za seznam pesmi
     '''
 
-    def __init__(self, id, owner, name, date):
+    def __init__(self, id, owner=None, name=None, date=None):
+        if owner is None or name is None or date is None:
+            q = "SELECT owner, name, date FROM playlist WHERE id = ?"
+            res = conn.execute(q, [id])
+            if res is None:
+                raise ValueError("Playlist not found")
+            owner, name, date = res
         self.owner = User(owner)
         self.date = date
         self.name = name
@@ -209,4 +226,18 @@ class Playlist:
             q = "SELECT id, release, order_num, title, length FROM Song s JOIN RIGHT Playlist_Has_Song ps ON s.id = ps.song_id WHERE playlist_id = ? ORDER BY order_num ASC"
             for id, release, order_num, title, length in conn.execute(q, [self.id]):
                 self._songs.append(Song(id, release, order_num, title, length))
-        return self._songs     
+        return self._songs  
+
+    def add_song(self, song_id):
+        q = "SELECT MAX(order_num) FROM Playlist_has_song WHERE playlist_id = ? GROUP BY playlist_id"
+        res = conn.execute(q, [self.id])
+        if res is None:
+            order_num = 0
+        else:
+            order_num = res
+            order_num += 1
+        phs.insert(playlist_id=self.id, song_id=song_id, order_num=order_num)
+
+    @staticmethod
+    def create(owner, name):
+        playlist.insert(owner=owner, name=name)
