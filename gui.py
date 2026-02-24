@@ -59,6 +59,10 @@ def logout_user():
 def static(file):
     return bottle.static_file(file, root='static')
 
+@bottle.get('/music/<file:path>')
+def static_music(file):
+    return bottle.static_file(file, root='music')
+
 @bottle.get('/')
 @bottle.view('index.html')
 def index():
@@ -104,10 +108,30 @@ def odjava():
 
 @bottle.get('/pesmi/')
 @bottle.view('songsearch.html')
-def song_search_post():
+def song_search():
     query = bottle.request.query.query
     if query:
         results = Song.search(query)
+    else:
+        results = None
+    return dict(query=query, results=results)
+
+@bottle.get('/izvajalci/')
+@bottle.view('usersearch.html')
+def user_search():
+    query = bottle.request.query.query
+    if query:
+        results = User.search(query)
+    else:
+        results = None
+    return dict(query=query, results=results)
+
+@bottle.get('/izdaje/')
+@bottle.view('releasesearch.html')
+def release_search():
+    query = bottle.request.query.query
+    if query:
+        results = Release.search(query)
     else:
         results = None
     return dict(query=query, results=results)

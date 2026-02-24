@@ -1,16 +1,34 @@
 % rebase("base.html")
 
-<form action="/pesmi/" method="GET">
-    <div class="field">
-        <input class="input" type="text" name="query" placeholder="Vpiši ime pesmi" value="{{query}}">
-        <button lcass="button is-success">Išči</button>
-    </div>
-</form>
+<br><br><br><br>
 
-% if results:
+<div class="search-bar">
+    <form action="/pesmi/" method="GET">
+        <div class="field">
+            <input class="input" type="text" name="query" placeholder="Vpiši ime pesmi" value="{{query}}">
+            <button class="button is-success">Išči</button>
+        </div>
+    </form>
+</div>
+
+<br><br>
+
+<div class="search-results">
+    % if results:
     % for song in results:
-    <p>
-        ime: {{song.title}}, izdaja: {{song.release}}
-    </p>
-% end
+    <div class="result">
+        <div class="song-title">
+            {{song.title}}
+        </div>
+        <audio controls>
+            <source src="{{song.location[1:]}}" type="audio/mpeg">
+        </audio>
+        <div class="info">
+            Izvajalec: <a href="/uprabniki/">{{song.author}}</a>
+            <br>
+            Izdaja:<a href="/izdaje/">{{song.release_title}}</a>
+        </div>
+    </div>
+    % end
+</div>
 

@@ -26,7 +26,7 @@ body {
 }
 .navbar li a {
     display: block;
-    color: white;
+    color: rgb(255, 244, 219);
     text-align: center;
     padding: 14px 16px;
 }
@@ -34,57 +34,59 @@ body {
     background-color: #111111;
 }
 
-
-/* osnova / rezultati iskanja */
-.flex-container{
+/* iskalnik */
+.search-bar {
     display: flex;
     flex-direction: column;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-content: center;
-    }
-.flex-item{
+    align-items: center;
+}
+.search-bar form {
+    display: flex;
+    flex-direction: column;
     background-color: #212529c7;
     font-family: Arial, Helvetica, sans-serif;
-    max-width: 100vh;
-    width: 100%;
+    width: 25vw;
     border-radius: 20px;
-    }
-.item-header{
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 24px;
-    padding-top: 1vh;
-    padding-bottom: 1vh;
-    }
-.item-header:hover{
-    background-color: #212529e8;
-    border-radius: 20px;
+    padding: 1vh;
+    margin: 1vh;
+    align-items: center;
+}
+.search-bar .field input{
+    background-color: #11111100;
+    color: rgb(255, 244, 219);
+    text-decoration: none;
+}
+.search-bar .field button  {
+    opacity: 100%;
 }
 
-/* zgornja vrstica */
-.top-row{
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    width: 90%;
-    margin: 0 auto;
-    padding: 2%;
-    column-gap: 5%;
+/* rezultati iskanja */
+.search-results {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    }
-.top-row-item{
-    background-color: #212529c7;
     align-content: center;
-    border-radius: 20px;
-    width: fit-content;
-    max-width: 100%;
-    }
-.top-row-search{
+}
+.search-results .result {
     background-color: #212529c7;
-    align-content: center;
+    font-family: Arial, Helvetica, sans-serif;
+    width: 50vw;
     border-radius: 20px;
-    }
-
+    padding: 1vh;
+    margin: 1vh;
+    align-items: center;
+    text-align: center;
+}
+.search-results .result .song-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+.search-results .result a {
+    color: rgb(255, 244, 219);
+}
+.search-results .result audio{
+    background-color: #21252900;
+}
 
 /* dropdown */
 .dropdown {
@@ -98,6 +100,7 @@ body {
 .dropdown-content {
     display: none;
     position: absolute;
+    color: rgb(255, 244, 219);
     background-color: #212529c7;
     min-width: 160px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
@@ -105,11 +108,11 @@ body {
     border-radius: 20px;
 }
 .dropdown-content a {
-    color: rgb(255, 244, 219);
     padding: 12px 16px;
     text-decoration: none;
     display: block;
     float: left;
+    color: rgb(255, 244, 219);
 }
 .dropbtn {
     background-color: #21252900;
@@ -126,9 +129,11 @@ body {
 .dropdown-content a:hover {
     background-color: #212529eb;
     border-radius: 20px;
+    color: rgb(255, 244, 219);
     }
 .dropdown:hover .dropdown-content {
     display: flex;
+    flex-direction: column;
     }
 .dropdown:hover .dropbtn {background-color: #212529eb;}
 

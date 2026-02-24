@@ -113,6 +113,8 @@ class Song:
         q = "SELECT author FROM Release WHERE id = ?"
         self.author = User(conn.execute(q, [release]).fetchone()[0])
 
+        self.release_title = Release(release).title
+
     def __str__(self):
         return self.title
 
