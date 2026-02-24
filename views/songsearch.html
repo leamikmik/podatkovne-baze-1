@@ -17,16 +17,16 @@
     % if results:
     % for song in results:
     <div class="result">
-        <div class="song-title">
+        <div class="title">
             {{song.title}}
         </div>
         <audio controls>
             <source src="{{song.location[1:]}}" type="audio/mpeg">
         </audio>
         <div class="info">
-            Izvajalec: <a href="/uprabniki/">{{song.author}}</a>
+            Izvajalec: <a href="/uporabniki/{{song.author.id}}/">{{song.author}}</a>
             <br>
-            Izdaja:<a href="/izdaje/">{{song.release_title}}</a>
+            Izdaja:<a href="/izdaje/{{song.release}}/">{{song.release_title}}</a>
         </div>
     </div>
     % end

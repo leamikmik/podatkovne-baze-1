@@ -40,7 +40,7 @@ def logged_in_user():
         user = User(uid)
     except:
         return False
-    return str(user)
+    return user
 
 def login_user(user, cookie="None"):
     if not user:
@@ -131,10 +131,26 @@ def user_search():
 def release_search():
     query = bottle.request.query.query
     if query:
-        results = Release.search(query)
+        results = Release.search(query, "album")
+        results.extend(Release.search(query, "single"))
+        results.extend(Release.search(query, "ep"))
     else:
         results = None
     return dict(query=query, results=results)
+
+@bottle.get('/izdaje/<id:int>/')
+@bottle.view('release.html')
+def release_songs(id):
+    release = Release(id)
+    songs = release.songs
+    return dict(release=release, songs=songs)
+
+@bottle.get('/uporabniki/<id:int>/')
+@bottle.view('user.html')
+def user_info(id):
+    user = User(id)
+    releases = user.releases
+    return dict(releases=releases, _user=user)
 
 bottle.BaseTemplate.defaults["read_message"] = read_message
 bottle.BaseTemplate.defaults["read_form"] = read_form

@@ -77,7 +77,7 @@ body {
     align-items: center;
     text-align: center;
 }
-.search-results .result .song-title {
+.search-results .result .title {
     font-size: 20px;
     font-weight: bold;
 }

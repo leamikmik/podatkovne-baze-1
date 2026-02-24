@@ -1,0 +1,23 @@
+% rebase("base.html")
+
+<br><br><br><br>
+
+<div class="search-bar">
+    <form action="/izvajalci/" method="GET">
+        <div class="field">
+            <input class="input" type="text" name="query" placeholder="Vpiši ime izvajalca" value="{{query}}">
+            <button class="button is-success">Išči</button>
+        </div>
+    </form>
+</div>
+
+<br><br>
+
+<div class="search-results">
+    % if results:
+    % for _user in results:
+    <div class="result">
+        <a href="/uporabniki/{{_user.id}}/">{{_user.name}}</a>
+    </div>
+    % end
+</div>

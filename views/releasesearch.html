@@ -1,0 +1,30 @@
+% rebase("base.html")
+
+<br><br><br><br>
+
+<div class="search-bar">
+    <form action="/izdaje/" method="GET">
+        <div class="field">
+            <input class="input" type="text" name="query" placeholder="Vpiši ime izdaje" value="{{query}}">
+            <button class="button is-success">Išči</button>
+        </div>
+    </form>
+</div>
+
+<br><br>
+
+<div class="search-results">
+    % if results:
+    % for rel in results:
+    <div class="result">
+        <div class="title">
+            <a href="/izdaje/{{rel.id}}/">{{rel.title}}</a>
+        </div>
+        <div class="info">
+            Tip: {{rel.type}} <br>
+            Dolžina: {{rel.length // 60}} minut <br>
+            Izvajalec: <a href="/uporabniki/{{rel.author.id}}/">{{rel.author}}</a>
+        </div>
+    </div>
+    % end
+</div>

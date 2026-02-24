@@ -1,0 +1,24 @@
+% rebase("base.html")
+
+<br><br><br><br>
+
+<div class="search-results">
+    <div class="result">
+        <h1>{{_user.name}}</h1>
+        <div class="info">
+            Datum registracije: {{_user.date}}
+        </div>
+    </div>
+    % if releases:
+    % for rel in releases:
+    <div class="result">
+        <div class="title">
+            <a href="/izdaje/{{rel.id}}/">{{rel.title}}</a>
+        </div>
+        <div class="info">
+            Tip: {{rel.type}} <br>
+            Dolžina: {{rel.length // 60}} minut <br>
+        </div>
+    </div>
+    % end
+</div>
