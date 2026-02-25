@@ -1,5 +1,6 @@
 import bottle
 import json
+import os
 from functools import wraps
 from model import User, Song, Release, Playlist, user
 
@@ -62,6 +63,10 @@ def static(file):
 @bottle.get('/music/<file:path>')
 def static_music(file):
     return bottle.static_file(file, root='music')
+
+@bottle.get('/temp/<file:path>')
+def static_temp(file):
+    return bottle.static_file(file, root='temp')
 
 @bottle.get('/')
 @bottle.view('index.html')
@@ -151,6 +156,48 @@ def user_info(id):
     user = User(id)
     releases = user.releases
     return dict(releases=releases, _user=user)
+
+@bottle.get('/nalaganje/')
+@bottle.view('makerelease.html')
+def make_release_get():
+    if not logged_in_user():
+        bottle.redirect('/prijava/')
+    pass
+
+@bottle.post('/nalaganje/')
+def make_release_post():
+    _user=logged_in_user()
+    type=bottle.request.forms.type
+    title=bottle.request.forms.title
+    r_id=Release.new_release(_user.id, title, type, "./music/")
+    bottle.redirect(f'/nalaganje/{r_id}/')
+
+@bottle.get('/nalaganje/<r_id:int>/')
+@bottle.view('upload.html')
+def upload_get(r_id):
+    return dict(r_id=r_id)
+
+@bottle.post('/nalaganje/<r_id:int>/')
+def upload_post(r_id):
+    _user=logged_in_user()
+    release=Release(r_id)
+    # if release.author != _user.id:
+        # set_message("Samo avtor izdaje lahko ji dodaja pesmi.")
+        # bottle.redirect('/')
+    file = bottle.request.files.get('upload')
+    _, ext = os.path.splitext(file.filename)
+    if ext != ".mp3":
+        set_message("Dovoljeno je nalaganje samo mp3 datotek.")
+        bottle.redirect(f'/nalaganje/{r_id}/')
+    title=bottle.request.forms.title
+    destination=os.path.join("/music/", str(r_id))
+    order_num=len(os.listdir(destination))
+    path=os.path.join("/temp/", str(order_num - 1))
+    file.save(path)
+    Song.new_song(r_id, order_num, title, path, destination)
+
+
+
 
 bottle.BaseTemplate.defaults["read_message"] = read_message
 bottle.BaseTemplate.defaults["read_form"] = read_form

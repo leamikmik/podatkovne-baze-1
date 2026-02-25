@@ -91,6 +91,7 @@ class User:
             res.append(User(id, name, date))
         return res
     
+    # backup verzija ce ne uspem z drugimi metodami
     def new_release(self, path, destination, title, type):
         # creates a directory in destination titled by the release id
         os.chdir(destination)
@@ -103,7 +104,9 @@ class User:
         song_files = os.listdir()
         order_num = 0
         for file in song_files:
-            title, _ = os.path.splitext(file)
+            title, ext = os.path.splitext(file)
+            if ext is not "mp3":
+                raise ValueError("Dopuščeno je nalagati le mp3 datoteke")
             _, title = title.split(".", 1)
             length = int(MP3(file).info.length)
             # insert
@@ -147,6 +150,14 @@ class Song:
         for id, order, release, title, length in conn.execute(q, [f"%{query}%"]):
             res.append(Song(id, release, order, title, length))
         return res
+    
+    @staticmethod
+    # Doda novo pesem v tabelo pesmi, primerno premakne ter preimenuje datoteko
+    def new_song(release, order_num, title, path, destination):
+        length = int(MP3(path).info.length)
+        os.replace(path, os.path.join(destination, release, str(order_num) + ".mp3"))
+        song.insert(release=release, order_num=order_num, title=title, length=length)
+
 
 class Release:
     '''
@@ -198,6 +209,18 @@ class Release:
         for id, author, title, type, date in conn.execute(q, [f"%{query}%", qtype]):
             res.append(Release(id, author, title, type, date))
         return res
+    
+    @staticmethod
+    # Doda izdajo v tabelo izdaj, zanjo ustvari datoteko
+    def new_release(author, title, type, path):
+        release.insert(author=author, title=title, type=type)
+        q = "SELECT MAX(id), author FROM release"
+        res = conn.execute(q)
+        for id, _ in res:
+            r_id = id
+        os.mkdir(os.path.join(path, str(r_id)))
+        return r_id
+
 
 class Playlist:
     '''
