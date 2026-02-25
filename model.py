@@ -1,4 +1,4 @@
-import sqlite3, bcrypt, db, os
+import sqlite3, bcrypt, db, os, mutagen.mp3
 
 conn = sqlite3.connect('music.db')
 cur = conn.cursor()
@@ -91,16 +91,26 @@ class User:
             res.append(User(id, name, date))
         return res
     
-#    def new_release(self, title, type, path):
-#        os.chdir(path)
-#        song_files = os.listdir()
-#        for file in song_files:
-#            order_num = 
-#            title = 
-#            length = 
-#            song.insert(release=)
-#        release.insert(author=self.id, title=title, type=type)
-#        return
+    def new_release(self, path, destination, title, type):
+        # creates a directory in destination titled by the release id
+        os.chdir(destination)
+        release_id = len(os.listdir())
+        os.mkdir(str(release_id))
+        # insert into release
+        release.insert(author=self.id, title=title, type=type)
+        # checks files to be moved
+        os.chdir(path)
+        song_files = os.listdir()
+        order_num = 0
+        for file in song_files:
+            title, _ = os.path.splitext(file)
+            _, title = title.split(".", 1)
+            length = int(MP3(file).info.length)
+            # insert
+            song.insert(release=release_id, order_num=order_num, title=title, length=length)
+            # moves file, changes name, removes original file
+            os.replace(os.path.join(path,file), os.path.join(destination, release_id, str(order_num) + ".mp3"))
+            order_num += 1
 
 class Song:
     '''
