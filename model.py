@@ -34,6 +34,7 @@ class User:
         self.name = name
         self.date = date
         self._releases = []
+        self._playlists = []
 
     def __str__(self):
         return self.name
@@ -52,6 +53,19 @@ class User:
         
         for id, title, type, date in conn.execute(q, [self.id, type] if type != "all" else [self.id]):
             res.append(Release(id, self.id, title, type, date))
+        return res
+    
+    @property
+    def playlists(self):
+        if not self._playlists:
+            self._playlists = self.getPlaylists()
+        return self._playlists
+    
+    def getPlaylists(self):
+        q = "SELECT id, name, date_created FROM Playlist WHERE owner = ?"
+        res = []
+        for id, name, date in conn.execute(q, [self.id]):
+            res.append(Playlist(id, name, self.id, date))
         return res
 
     @staticmethod
@@ -274,3 +288,8 @@ class Playlist:
     @staticmethod
     def create(owner, name):
         playlist.insert(owner=owner, name=name)
+        q = "SELECT MAX(id) FROM Playlist"
+        res = conn.execute(q, [owner])
+        for id in res:
+            p_id = id
+        return p_id

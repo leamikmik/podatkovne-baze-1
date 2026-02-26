@@ -196,6 +196,47 @@ def upload_post(r_id):
     file.save(path)
     Song.new_song(r_id, order_num, title, path, destination)
 
+@bottle.get('/seznami/')
+@bottle.view('userplaylists.html')
+def playlists_get():
+    _user=logged_in_user()
+    if not _user:
+        bottle.redirect('/prijava/')
+        set_message("Za sezname predvajanj morate biti prijavljeni.")
+    playlists=_user.playlists
+    return dict(playlists=playlists)
+
+@bottle.post('/seznami/')
+def make_playlist_post():
+    _user=logged_in_user()
+    name=bottle.request.forms.name
+    p_id=Playlist.create(_user.id, name)
+    bottle.redirect(f'/seznami/dodaj/{p_id}/')
+
+@bottle.get('/seznami/<pid:int>/')
+@bottle.view('playlist.html')
+def playlist_view(pid):
+    playlist=Playlist(pid)
+    return dict(playlist=playlist)
+    
+@bottle.get('/seznami/dodaj/<pid:int>/')
+@bottle.view('playlistadd.html')
+def add_to_playlist(pid):
+    _user=logged_in_user()
+    playlist=Playlist(pid)
+    if not _user:
+        bottle.redirect('/prijava/')
+        set_message("Za sezname predvajanj morate biti prijavljeni.")
+    if _user.id != playlist.owner:
+        set_message("Urejate lahko samo svoje sezname predvajanj.")
+        bottle.redirect('/')
+    query = bottle.request.query.query
+    if query:
+        results = Song.search(query)
+    else:
+        results = None
+    return dict(query=query, results=results, playlist=playlist)
+    
 
 
 
