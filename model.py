@@ -1,5 +1,5 @@
 import sqlite3, bcrypt, db, os
-from mutagen import MP3
+from mutagen import mp3
 
 conn = sqlite3.connect('music.db')
 cur = conn.cursor()
@@ -123,7 +123,7 @@ class User:
             if ext is not "mp3":
                 raise ValueError("Dopuščeno je nalagati le mp3 datoteke")
             _, title = title.split(".", 1)
-            length = int(MP3(file).info.length)
+            length = int(mp3(file).info.length)
             # insert
             song.insert(release=release_id, order_num=order_num, title=title, length=length)
             # moves file, changes name, removes original file
