@@ -1,4 +1,5 @@
 import csv
+from sqlite3 import Error
 
 class Table:
     """
@@ -12,6 +13,7 @@ class Table:
         """
         Ponastavi tabelo
         """
+        print(f"Setting up {self.name}")
         self.drop()
         self.conn.execute(q)
         self.import_data()
@@ -37,7 +39,8 @@ class Table:
 
     def insert(self, **values):
         """
-        Vnese podane podatke v tabelo
+        Vnese podane podatke v tabelo.
+        Vrne id vnešene vrstice oz. -1 v primeru napake
         
         Vnos oblike insert(column1 = val1, calumn2 = val2, ...)
         """
@@ -45,8 +48,49 @@ class Table:
             raise ValueError("Incorrect columns")
         
         q = f"INSERT INTO {self.name} ({",".join(values.keys())}) VALUES ({("?, "*len(values))[:-2]});"
-        cur = self.conn.execute(q, list(values.values()))
-        return cur.lastrowid
+        try:
+            cur = self.conn.execute(q, list(values.values()))
+            self.conn.commit()
+            return cur.lastrowid
+        except Error as e:
+            self.conn.rollback()
+            print(f"Error ocurred: {e}")
+            return -1
+        
+    def update(self, condition, **values):
+        """
+        Posodobi tabelo z podanim pogojem
+
+        Klic oblike update(tuple: (str: Pogoj SQL stavek, list: Spremenljivke v vrstnem redu iz pogoja), column1 = val1, ...)
+        """
+        if not set(values.keys()).issubset(self.columns):
+            raise ValueError("Incorrect columns")
+        q = f"UPDATE {self.name} SET {("? = ?, "*len(values))[:-2]} WHERE " + condition[0]
+        try:
+            self.conn.execute(q, sum(map(list, values.items()), start = []) + condition[1])
+            self.conn.commit()
+            return
+        except Error as e:
+            self.conn.rollback()
+            print(f"Error ocurred: {e}")
+            return e
+
+    def delete(self, condition):
+        """
+        Izbriše vrstice pod pogojem
+
+        Klic oblike delete(tuple: (str: Pogoj SQL stavek, list: Spremenljivke v vrstnem redu iz pogoja))
+        """
+        q = f"DELETE FROM {self.name} WHERE " + condition[0]
+        try:
+            self.conn.execute(q, condition[1])
+            self.conn.commit()
+            return
+        except Error as e:
+            self.conn.rollback()
+            print(f"Error ocurred: {e}")
+            return e
+        pass
     
 class User(Table):
 
@@ -87,6 +131,11 @@ class Release(Table):
         if values["type"] not in {"single", "ep", "album"}:
             raise ValueError("Incorrect release type")
         return super().insert(**values)
+    
+    def update(self, condition, **values):
+        if values.get("type") not in {None, "single", "ep", "album"}:
+            raise ValueError("Incorrect release type")
+        return super().update(condition, **values)
 
 class Song(Table):
     
