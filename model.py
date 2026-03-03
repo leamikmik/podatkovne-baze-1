@@ -1,4 +1,5 @@
-import sqlite3, bcrypt, db, os, mutagen.mp3
+import sqlite3, bcrypt, db, os
+from mutagen import MP3
 
 conn = sqlite3.connect('music.db')
 cur = conn.cursor()
