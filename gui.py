@@ -245,4 +245,4 @@ bottle.BaseTemplate.defaults["read_form"] = read_form
 bottle.BaseTemplate.defaults["logged_in_user"] = logged_in_user
 
 if __name__ == '__main__':
-    bottle.run(debug=True, reloader=True)
+    bottle.run(debug=True)
